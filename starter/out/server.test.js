@@ -1,16 +1,13 @@
-import axios, { AxiosError } from "axios";
-
 let port = 3000;
 let host = "localhost";
 let protocol = "http";
 let baseUrl = `${protocol}://${host}:${port}`;
-
+export {};
 // test("GET /foo?bar returns message", async () => {
 //     let bar = "xyzzy";
 //     let { data } = await axios.get(`${baseUrl}/foo?bar=${bar}`);
 //     expect(data).toEqual({ message: `You sent: ${bar} in the query` });
 // });
-
 // test("GET /foo returns error", async () => {
 //     try {
 //         await axios.get(`${baseUrl}/foo`);
@@ -30,7 +27,6 @@ let baseUrl = `${protocol}://${host}:${port}`;
 //         expect(response.data).toEqual({ error: "bar is required" });
 //     }
 // });
-
 // test("POST /bar works good", async () => {
 //     let bar = "xyzzy";
 //     let result = await axios.post(`${baseUrl}/foo`, { bar });
