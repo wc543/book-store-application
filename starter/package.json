@@ -4,7 +4,7 @@
         "build": "rd /s /q out && mkdir out && tsc",
         "start": "cd out && node server.js",
         "watch": "npm run build && tsc-watch --onSuccess \"npm run start\"",
-        "test": "NODE_OPTIONS=--experimental-vm-modules jest --runInBand --rootDir=src"
+        "test": "set NODE_OPTIONS=--experimental-vm-modules && jest --runInBand --rootDir=src"
     },
     "type": "module",
     "dependencies": {
