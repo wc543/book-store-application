@@ -148,9 +148,10 @@ app.post("/authors", async (req, res: AuthorResponse) => {
 
         return res.json(author);
     } catch (error) {
+        console.error("Error creating author: ", error);
         return res.status(500).json({ error: "Failed to create author" });
     }
-})
+});
 
 app.get("/authors", async (req, res: AuthorResponse) => {
     try {
@@ -160,7 +161,6 @@ app.get("/authors", async (req, res: AuthorResponse) => {
     } catch (error) {
         return res.status(500).json({ error: "Failed to fetch authors" });
     }
-
 });
 
 app.get("/authors/:id", async (req, res: AuthorResponse) => {
@@ -209,7 +209,7 @@ app.delete("/authors/:id", async (req, res: BookResponse) => {
     } catch (error) {
         return res.status(500).json({ error: "Failed to delete author" });
     }
-})
+});
 
 app.post("/books", async (req, res: BookResponse) => {
     const { author_id, title, pub_year, genre } = req.body;
@@ -253,6 +253,23 @@ app.get("/books", async (req, res: BookResponse) => {
     }
 });
 
+app.get("/books/:year", async (req, res: BookResponse) => {
+    const bookYear = req.params.year;
+
+    try {
+        const books = await db.all("SELECT * FROM books WHERE pub_year >= ?",
+            [bookYear]);
+
+        if (books.length === 0) {
+            return res.status(404).json({ error: "No books found for that publication year or later" });
+        }
+
+        return res.json(books);
+    } catch (error) {
+        return res.status(500).json({ error: "Failed to fetch books" });
+    }
+});
+
 app.get("/books/:id", async (req, res: BookResponse) => {
     const bookId = req.params.id;
 
@@ -268,23 +285,6 @@ app.get("/books/:id", async (req, res: BookResponse) => {
         return res.json(book);
     } catch (error) {
         return res.status(500).json({ error: "Failed to fetch book" });
-    }
-});
-
-app.get("/books/:year", async (req, res: BookResponse) => {
-    const bookYear = req.params.year;
-
-    try {
-        const books = await db.all("SELECT * FROM books WHERE pub_year >= ?",
-            [bookYear]);
-
-        if (books.length === 0) {
-            return res.status(404).json({ error: "No books found for that publication year or later" });
-        }
-
-        return res.json(books);
-    } catch (error) {
-        return res.status(500).json({ error: "Failed to fetch books" });
     }
 });
 
