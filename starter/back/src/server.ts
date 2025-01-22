@@ -128,7 +128,7 @@ interface Error {
 type AuthorResponse = Response<Author | Author[] | Success | Error>;
 type BookResponse = Response<Book | Book[] | Success | Error>;
 
-app.post("/authors", async (req, res: AuthorResponse) => {
+app.post("/api/authors", async (req, res: AuthorResponse) => {
     const { name, bio } = req.body;
 
     if (!name || !bio) {
@@ -153,7 +153,7 @@ app.post("/authors", async (req, res: AuthorResponse) => {
     }
 });
 
-app.get("/authors", async (req, res: AuthorResponse) => {
+app.get("/api/authors", async (req, res: AuthorResponse) => {
     try {
         const authors = await db.all("SELECT * FROM authors");
 
@@ -163,7 +163,7 @@ app.get("/authors", async (req, res: AuthorResponse) => {
     }
 });
 
-app.get("/authors/:id", async (req, res: AuthorResponse) => {
+app.get("/api/authors/:id", async (req, res: AuthorResponse) => {
     const authorId = req.params.id;
 
     try {
@@ -181,7 +181,7 @@ app.get("/authors/:id", async (req, res: AuthorResponse) => {
     }
 });
 
-app.delete("/authors/:id", async (req, res: BookResponse) => {
+app.delete("/api/authors/:id", async (req, res: BookResponse) => {
     const authorId = req.params.id;
 
     try {
@@ -211,7 +211,7 @@ app.delete("/authors/:id", async (req, res: BookResponse) => {
     }
 });
 
-app.post("/books", async (req, res: BookResponse) => {
+app.post("/api/books", async (req, res: BookResponse) => {
     const { author_id, title, pub_year, genre } = req.body;
 
     if (!author_id || !title || !pub_year || !genre) {
@@ -243,7 +243,7 @@ app.post("/books", async (req, res: BookResponse) => {
     }
 });
 
-app.get("/books", async (req, res: BookResponse) => {
+app.get("/api/books", async (req, res: BookResponse) => {
     try {
         const books = await db.all("SELECT * FROM books");
 
@@ -253,7 +253,7 @@ app.get("/books", async (req, res: BookResponse) => {
     }
 });
 
-app.get("/books/:year", async (req, res: BookResponse) => {
+app.get("/api/books/:year", async (req, res: BookResponse) => {
     const bookYear = req.params.year;
 
     try {
@@ -270,7 +270,7 @@ app.get("/books/:year", async (req, res: BookResponse) => {
     }
 });
 
-app.get("/books/:id", async (req, res: BookResponse) => {
+app.get("/api/books/:id", async (req, res: BookResponse) => {
     const bookId = req.params.id;
 
     try {
@@ -288,7 +288,7 @@ app.get("/books/:id", async (req, res: BookResponse) => {
     }
 });
 
-app.delete("/books/:id", async (req, res: BookResponse) => {
+app.delete("/api/books/:id", async (req, res: BookResponse) => {
     const bookId = req.params.id;
 
     try {
