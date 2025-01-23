@@ -14,7 +14,7 @@ let db = await open({
     driver: sqlite3.Database,
 });
 await db.get("PRAGMA foreign_keys = ON");
-app.post("/authors", async (req, res) => {
+app.post("/api/authors", async (req, res) => {
     const { name, bio } = req.body;
     if (!name || !bio) {
         return res.status(400).json({ error: "Please enter a name and bio for the author" });
@@ -30,7 +30,7 @@ app.post("/authors", async (req, res) => {
         return res.status(500).json({ error: "Failed to create author" });
     }
 });
-app.get("/authors", async (req, res) => {
+app.get("/api/authors", async (req, res) => {
     try {
         const authors = await db.all("SELECT * FROM authors");
         return res.json(authors);
@@ -39,7 +39,7 @@ app.get("/authors", async (req, res) => {
         return res.status(500).json({ error: "Failed to fetch authors" });
     }
 });
-app.get("/authors/:id", async (req, res) => {
+app.get("/api/authors/:id", async (req, res) => {
     const authorId = req.params.id;
     try {
         const author = await db.get("SELECT * FROM authors WHERE id = ?", [authorId]);
@@ -52,7 +52,7 @@ app.get("/authors/:id", async (req, res) => {
         return res.status(500).json({ error: "Failed to fetch author" });
     }
 });
-app.delete("/authors/:id", async (req, res) => {
+app.delete("/api/authors/:id", async (req, res) => {
     const authorId = req.params.id;
     try {
         const author = await db.get("SELECT * FROM authors WHERE id = ?", [authorId]);
@@ -70,7 +70,7 @@ app.delete("/authors/:id", async (req, res) => {
         return res.status(500).json({ error: "Failed to delete author" });
     }
 });
-app.post("/books", async (req, res) => {
+app.post("/api/books", async (req, res) => {
     const { author_id, title, pub_year, genre } = req.body;
     if (!author_id || !title || !pub_year || !genre) {
         return res.status(400).json({ error: "Please enter a author id, title, publication year and genre for the book" });
@@ -89,7 +89,7 @@ app.post("/books", async (req, res) => {
         return res.status(500).json({ error: "Failed to create a book" });
     }
 });
-app.get("/books", async (req, res) => {
+app.get("/api/books", async (req, res) => {
     try {
         const books = await db.all("SELECT * FROM books");
         return res.json(books);
@@ -98,7 +98,7 @@ app.get("/books", async (req, res) => {
         return res.status(500).json({ error: "Failed to fetch books" });
     }
 });
-app.get("/books/:year", async (req, res) => {
+app.get("/api/books/:year", async (req, res) => {
     const bookYear = req.params.year;
     try {
         const books = await db.all("SELECT * FROM books WHERE pub_year >= ?", [bookYear]);
@@ -111,7 +111,7 @@ app.get("/books/:year", async (req, res) => {
         return res.status(500).json({ error: "Failed to fetch books" });
     }
 });
-app.get("/books/:id", async (req, res) => {
+app.get("/api/books/:id", async (req, res) => {
     const bookId = req.params.id;
     try {
         const book = await db.get("SELECT * FROM books WHERE id = ?", [bookId]);
@@ -124,7 +124,7 @@ app.get("/books/:id", async (req, res) => {
         return res.status(500).json({ error: "Failed to fetch book" });
     }
 });
-app.delete("/books/:id", async (req, res) => {
+app.delete("/api/books/:id", async (req, res) => {
     const bookId = req.params.id;
     try {
         const book = await db.get("SELECT * FROM books WHERE id = ?", [bookId]);

@@ -23,6 +23,12 @@ export default tseslint.config(
         'warn',
         { allowConstantExport: true },
       ],
+      "prefer-const": "off", // let is fine who cares
+      // note that you can also avoid getting warned for unused variables
+      // when destructuring arrays by just using commas in cases like this:
+      // e.g. let [, x] = [1, 2, 3]; console.log(x);
+      "@typescript-eslint/no-unused-vars": "off", // annoying when developing
+      "@typescript-eslint/no-explicit-any": "off", // sometimes it really can be anything, dude
     },
   },
 )
