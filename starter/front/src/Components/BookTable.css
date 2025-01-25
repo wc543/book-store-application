@@ -1,0 +1,17 @@
+#book-table table {
+    border-collapse: collapse;
+}
+#book-table td,
+th {
+    border: 1px solid black;
+    padding: 5px;
+}
+
+#book-table label {
+    display: block;
+    margin: 1rem 0;
+}
+
+#book-table select {
+    margin: 0 1rem;
+}

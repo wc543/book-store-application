@@ -1,0 +1,16 @@
+#book-form label {
+    display: block;
+    margin: 1rem 0;
+}
+
+#book-form input,
+#book-form select,
+#book-form textarea {
+    margin: 0 1rem;
+}
+
+#book-form .error-message {
+    color: red;
+    margin: 1rem 0;
+    font-family: "Courier New", Courier, monospace;
+}

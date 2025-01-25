@@ -1,0 +1,16 @@
+#author-form label {
+    display: block;
+    margin: 1rem 0;
+}
+
+#author-form input,
+#author-form select,
+#author-form textarea {
+    margin: 0 1rem;
+}
+
+#author-form .error-message {
+    color: red;
+    margin: 1rem 0;
+    font-family: "Courier New", Courier, monospace;
+}
