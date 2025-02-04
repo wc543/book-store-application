@@ -138,6 +138,24 @@ app.delete("/api/books/:id", async (req, res) => {
         return res.status(500).json({ error: "Failed to delete book" });
     }
 });
+app.put("/api/books/:id", async (req, res) => {
+    const bookId = parseInt(req.params.id);
+    const { author_id, title, pub_year, genre } = req.body;
+    if (!author_id || !title || !pub_year || !genre) {
+        return res.status(400).json({ error: "Please enter a author id, title, publication year and genre for the book" });
+    }
+    try {
+        const result = await db.run("UPDATE books SET author_id = ?, title = ?, pub_year = ?, genre = ? WHERE id = ?", [author_id, title, pub_year, genre, bookId]);
+        if (result.changes === 0) {
+            return res.status(404).json({ error: "Book not found" });
+        }
+        const newBook = await db.get("SELECT * FROM books WHERE id = ?", [bookId]);
+        return res.json(newBook);
+    }
+    catch (error) {
+        return res.status(500).json({ error: "Failed to update book information" });
+    }
+});
 // run server
 let port = 3000;
 let host = "localhost";

@@ -172,3 +172,45 @@ test("GET /books/:year should return a 404 error if no books are found for the g
         expect(response.data).toEqual({ error: "No books found for that publication year or later" });
     }
 });
+
+
+test("PUT /books/:id should update the book if valid data is provided", async () => {
+    const bookId = 1;
+
+    const updatedBook = {
+        author_id: 3,
+        title: "1984 - Updated Edition",
+        pub_year: "2025",
+        genre: "Dystopian Fiction"
+    };
+
+    const { data } = await axios.put(`${baseUrl}/books/${bookId}`, updatedBook);
+
+    expect(data.id).toEqual(1);
+    expect(data.author_id).toEqual(updatedBook.author_id);
+    expect(data.title).toEqual(updatedBook.title);
+    expect(data.pub_year).toEqual(updatedBook.pub_year);
+    expect(data.genre).toEqual(updatedBook.genre);
+});
+
+test("PUT /books/:id should return a 400 error if required fields are missing", async () => {
+    const bookId = 1;
+    const invalidUpdate = {
+        title: "book"
+    };
+
+    try {
+        await axios.put(`${baseUrl}/books/${bookId}`, invalidUpdate);
+    } catch (error) {
+        const errorObj = error as AxiosError;
+
+        if (errorObj.response === undefined) {
+            throw errorObj;
+        }
+
+        const { response } = errorObj;
+
+        expect(response.status).toEqual(400);
+        expect(response.data).toEqual({ error: "Please enter a author id, title, publication year and genre for the book" });
+    }
+});
