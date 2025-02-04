@@ -4,7 +4,8 @@
         "build": "rd /s /q out && mkdir out && tsc",
         "start": "cd out && node server.js",
         "watch": "npm run build && tsc-watch --onSuccess \"npm run start\"",
-        "test": "set NODE_OPTIONS=--experimental-vm-modules && jest --runInBand --rootDir=src"
+        "test": "set NODE_OPTIONS=--experimental-vm-modules && jest --runInBand --rootDir=src",
+        "test-data": "sqlite3 database.db < test-data.sql"
     },
     "type": "module",
     "dependencies": {
