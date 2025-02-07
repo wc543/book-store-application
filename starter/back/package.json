@@ -1,11 +1,11 @@
 {
     "scripts": {
-        "setup": "del /f database.db && sqlite3 database.db < setup.sql",
-        "build": "rd /s /q out && mkdir out && tsc",
-        "start": "cd out && node server.js",
-        "watch": "npm run build && tsc-watch --onSuccess \"npm run start\"",
-        "test": "set NODE_OPTIONS=--experimental-vm-modules && jest --runInBand --rootDir=src",
-        "test-data": "sqlite3 database.db < test-data.sql"
+    "setup": "rm -f database.db && sqlite3 database.db < setup.sql",
+    "build": "rm -rf out && mkdir out && tsc",
+    "start": "cd out && node server.js",
+    "watch": "npm run build && tsc-watch --onSuccess \"npm run start\"",
+    "test": "node --experimental-vm-modules --no-warnings node_modules/.bin/jest --runInBand --rootDir src",
+    "test-data": "sqlite3 database.db < test-data.sql"
     },
     "type": "module",
     "dependencies": {
