@@ -1,0 +1,16 @@
+#register-form label {
+    display: block;
+    margin: 1rem 0;
+}
+
+#register-form input,
+#register-form select,
+#register-form textarea {
+    margin: 0 1rem;
+}
+
+#register-form .error-message {
+    color: red;
+    margin: 1rem 0;
+    font-family: "Courier New", Courier, monospace;
+}
