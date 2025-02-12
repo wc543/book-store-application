@@ -1,9 +1,13 @@
-import express, { Response } from "express";
+import express, { Response, CookieOptions } from "express";
 import sqlite3 from "sqlite3";
 import { open } from "sqlite";
 import * as url from "url";
+import * as argon2 from "argon2";
+import cookieParser from "cookie-parser";
+import crypto from "crypto";
 
 let app = express();
+app.use(cookieParser());
 app.use(express.json());
 
 // create database "connection"
@@ -17,91 +21,20 @@ let db = await open({
 });
 await db.get("PRAGMA foreign_keys = ON");
 
-//
-// SQLITE EXAMPLES
-// comment these out or they'll keep inserting every time you run your server
-// if you get 'UNIQUE constraint failed' errors it's because
-// this will keep inserting a row with the same primary key
-// but the primary key should be unique
-//
+argon2.hash("password").then(h => { console.log(h) });
 
-// // insert example
-// await db.run(
-//     "INSERT INTO authors(id, name, bio) VALUES('1', 'Figginsworth III', 'A traveling gentleman.')",
-// );
-// await db.run(
-//     "INSERT INTO books(id, author_id, title, pub_year, genre) VALUES ('1', '1', 'My Fairest Lady', '1866', 'romance')",
-// );
+let tokenStorage: { [key: string]: string } = {};
+// in a "real app", this would be a database ^
 
-// // insert example with parameterized queries
-// // important to use parameterized queries to prevent SQL injection
-// // when inserting untrusted data
-// let statement = await db.prepare(
-//     "INSERT INTO books(id, author_id, title, pub_year, genre) VALUES (?, ?, ?, ?, ?)",
-// );
-// await statement.bind(["2", "1", "A Travelogue of Tales", "1867", "adventure"]);
-// await statement.run();
+let cookieOptions: CookieOptions = {
+  httpOnly: true,
+  secure: true,
+  sameSite: "strict",
+};
 
-// // select examples
-// let authors = await db.all("SELECT * FROM authors");
-// console.log("Authors", authors);
-// let books = await db.all("SELECT * FROM books WHERE author_id = '1'");
-// console.log("Books", books);
-// let filteredBooks = await db.all("SELECT * FROM books WHERE pub_year = '1867'");
-
-// console.log("Some books", filteredBooks);
-
-// //
-// // EXPRESS EXAMPLES
-// //
-
-// // GET/POST/DELETE example
-// interface Foo {
-//     message: string;
-// }
-// interface Error {
-//     error: string;
-// }
-// type FooResponse = Response<Foo | Error>;
-// // res's type limits what responses this request handler can send
-// // it must send either an object with a message or an error
-// app.get("/foo", (req, res: FooResponse) => {
-//     if (!req.query.bar) {
-//         return res.status(400).json({ error: "bar is required" });
-//     }
-//     return res.json({ message: `You sent: ${req.query.bar} in the query` });
-// });
-// app.post("/foo", (req, res: FooResponse) => {
-//     if (!req.body.bar) {
-//         return res.status(400).json({ error: "bar is required" });
-//     }
-//     return res.json({ message: `You sent: ${req.body.bar} in the body` });
-// });
-// app.delete("/foo", (req, res) => {
-//     // etc.
-//     res.sendStatus(200);
-// });
-
-// //
-// // ASYNC/AWAIT EXAMPLE
-// //
-
-// function sleep(ms: number) {
-//     return new Promise((resolve) => setTimeout(resolve, ms));
-// }
-// // need async keyword on request handler to use await inside it
-// app.get("/bar", async (req, res: FooResponse) => {
-//     console.log("Waiting...");
-//     // await is equivalent to calling sleep.then(() => { ... })
-//     // and putting all the code after this in that func body ^
-//     await sleep(3000);
-//     // if we omitted the await, all of this code would execute
-//     // immediately without waiting for the sleep to finish
-//     console.log("Done!");
-//     return res.sendStatus(200);
-// });
-// // test it out! while server is running:
-// // curl http://localhost:3000/bar
+function makeToken() {
+    return crypto.randomBytes(32).toString("hex");
+}
 
 interface Book {
     id: number;
@@ -117,14 +50,27 @@ interface Author {
     bio: string;
 }
 
+interface User {
+    id: number;
+    username: string;
+    password: string;
+}
+
 interface Success {
     success: string;
+}
+
+interface LoginSuccess {
+    success: string;
+    token: string;
 }
 
 interface Error {
     error: string;
 }
 
+type RegisterResponse = Response<User | Success | Error>;
+type LoginResponse = Response<User | LoginSuccess | Error>;
 type AuthorResponse = Response<Author | Author[] | Success | Error>;
 type BookResponse = Response<Book | Book[] | Success | Error>;
 
@@ -332,6 +278,74 @@ app.put("/api/books/:id", async (req, res: BookResponse) => {
     } catch (error) {
         return res.status(500).json({ error: "Failed to update book information" });
     }
+});
+
+app.post("/api/register", async (req, res: RegisterResponse) => {
+    const { username, password } = req.body;
+
+    if (!username || !password) {
+        return res.status(400).json({ error: "Please enter username and password" });
+    }
+
+    else if (password.length < 6) {
+        return res.status(400).json({ error: "Password must be at least 6 characters long" });
+    }
+
+    try {
+        const user = await db.get("SELECT * FROM users WHERE username = ?",
+            [username]
+        );
+
+        if (user) {
+            return res.status(400).json({ error: "Username already exists" });
+        }
+
+        const hashedPassword = await argon2.hash(password);
+
+        const result = await db.run("INSERT INTO users(username, password) VALUES(?, ?)",
+            [username, hashedPassword]
+        );
+
+        const userId = result.lastID;
+
+        const newUser = await db.get("SELECT * FROM users WHERE id = ?",
+            [userId]
+        );
+
+        return res.json(newUser);
+    } catch (error) {
+        return res.status(500).json({ error: "Failed to register" });
+    }
+});
+
+app.post("/api/login", async (req, res: LoginResponse) => {
+    const { username, password } = req.body;
+
+    if (!username || !password) {
+        return res.status(400).json({ error: "Please enter username and password" });
+    }
+
+    const result = await db.get("SELECT * FROM users WHERE username = ?",
+        [username]
+    );
+
+    if (!result) {
+        return res.status(400).json({ error: "Username does not exist" });
+    }
+
+    try {
+        if (await argon2.verify(result.password, password)) {
+          const token = makeToken();
+          tokenStorage[username] = token;
+          return res.cookie("token", token, cookieOptions).json({ success: "Logged in", token});
+        }
+    
+        else {
+          return res.status(400).json({ error: "Password is incorrect" });
+        }
+      } catch (err) {
+        return res.status(500).json({ error: "Internal Server error" });
+      }
 });
 
 // run server
