@@ -5,10 +5,32 @@ import * as url from "url";
 import * as argon2 from "argon2";
 import cookieParser from "cookie-parser";
 import crypto from "crypto";
+import path from "path";
+import rateLimit from 'express-rate-limit';
+import helmet from 'helmet';
 
 let app = express();
 app.use(cookieParser());
 app.use(express.json());
+app.use(helmet());
+
+app.use(helmet.contentSecurityPolicy({
+  directives: {
+    defaultSrc: ["'self'"],
+    scriptSrc: ["'self'", "'unsafe-inline'"],
+    styleSrc: ["'self'", "'unsafe-inline'"],
+    imgSrc: ["'self'", "data:"],
+  }
+}));
+
+const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 100,
+    message: 'Too many requests, please try again later.',
+    headers: true,
+});
+  
+app.use(limiter);
 
 // create database "connection"
 // use absolute path to avoid this issue
@@ -20,6 +42,11 @@ let db = await open({
     driver: sqlite3.Database,
 });
 await db.get("PRAGMA foreign_keys = ON");
+
+let reactAssetsPath = path.join(__dirname, "../front/dist");
+console.log("Serving frontend from:", reactAssetsPath);
+
+app.use(express.static(reactAssetsPath));
 
 argon2.hash("password").then(h => { console.log(h) });
 
@@ -355,7 +382,12 @@ app.post("/api/logout", (req, res) => {
     res.clearCookie("user_id", { path: "/" });
   
     return res.json({ success: "Successfully logged out" });
-  });
+});
+
+app.get("*", (req, res) => {
+    console.log("Serving index.html for all other routes");
+    res.sendFile(path.join(reactAssetsPath, "index.html"));
+});
 
 // run server
 let port = 3000;

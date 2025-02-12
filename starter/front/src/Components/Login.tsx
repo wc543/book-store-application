@@ -6,7 +6,7 @@ import { useCookies } from "react-cookie";
 
 function Login() {
     let [messages, setMessages] = useState<string[]>([]);
-    let [cookies, setCookie] = useCookies(["token", "user_id"]);
+    let [, setCookie] = useCookies(["token", "user_id"]);
     let [username, setUsername] = useState("");
     let [password, setPassword] = useState("");
     const navigate = useNavigate();

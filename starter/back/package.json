@@ -3,6 +3,7 @@
         "setup": "rm -f database.db && sqlite3 database.db < setup.sql",
         "build": "rm -rf out && mkdir out && tsc",
         "start": "cd out && node server.js",
+        "start-dev": "pm2 start out/server.js --name myapp --watch",
         "watch": "npm run build && tsc-watch --onSuccess \"npm run start\"",
         "test": "node --experimental-vm-modules --no-warnings node_modules/.bin/jest --runInBand --rootDir src",
         "test-data": "sqlite3 database.db < test-data.sql"
@@ -12,6 +13,8 @@
         "argon2": "^0.41.1",
         "cookie-parser": "^1.4.7",
         "express": "^4.18.2",
+        "express-rate-limit": "^7.5.0",
+        "helmet": "^8.0.0",
         "sqlite": "^4.1.2",
         "sqlite3": "^5.1.4"
     },
