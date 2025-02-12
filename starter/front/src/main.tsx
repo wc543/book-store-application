@@ -6,6 +6,8 @@ import BookTable from "./Components/BookTable.tsx";
 import AddAuthor from "./Components/AddAuthor.tsx";
 import AddBook from "./Components/AddBook.tsx";
 import NavBar from "./Components/NavBar.tsx";
+import Login from "./Components/Login.tsx";
+import Register from "./Components/Register.tsx";
 import NotFound from "./Components/NotFound.tsx";
 
 let router = createBrowserRouter([
@@ -23,6 +25,14 @@ let router = createBrowserRouter([
       {
         path: "/add-book",
         element: <AddBook />
+      },
+      {
+        path: "/login",
+        element: <Login />
+      },
+      {
+        path: "/register",
+        element: <Register />
       },
       {
         path: "*",

@@ -7,6 +7,8 @@ function Header() {
       <Link to="/">Books</Link>
       <Link to="/add-author">Add Author</Link>
       <Link to="/add-book">Add Book</Link>
+      <Link to="/login">Login</Link>
+      <Link to="/register">Register</Link>
     </>
   );
 }
