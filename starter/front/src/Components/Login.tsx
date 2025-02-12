@@ -1,11 +1,20 @@
 import "./Login.css";
 import { useState } from "react";
 import { getAxiosErrorMessages } from "./utils";
+import { useNavigate } from "react-router-dom";
+import { useCookies } from "react-cookie";
 
 function Login() {
     let [messages, setMessages] = useState<string[]>([]);
+    let [cookies, setCookie] = useCookies(["token", "user_id"]);
     let [username, setUsername] = useState("");
     let [password, setPassword] = useState("");
+    const navigate = useNavigate();
+
+    interface LoginResponse {
+      token: string;
+      user_id: number;
+    }
 
     let handleSubmit = async function () {
         try {
@@ -21,11 +30,17 @@ function Login() {
             headers: {
               'Content-Type': 'application/json'
             },
-            body: JSON.stringify(user)
+            body: JSON.stringify(user),
           });
     
           if (response.ok) {
+            const data: LoginResponse = await response.json();
+
+            setCookie("token", data.token, { path: "/" });
+            setCookie("user_id", data.user_id, { path: "/" });
             setMessages(["User successfully Logged in"]);
+            
+            navigate("/");
           } 
     
           else {
@@ -68,7 +83,7 @@ function Login() {
           ></input>
         </label>
 
-        <button onClick={handleSubmit}>Register</button>
+        <button onClick={handleSubmit}>Login</button>
         <div className="error-message">
           {messages.map((message, i) => (
             <div key={i}>{message}</div>

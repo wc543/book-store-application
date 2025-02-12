@@ -24,7 +24,6 @@ await db.get("PRAGMA foreign_keys = ON");
 argon2.hash("password").then(h => { console.log(h) });
 
 let tokenStorage: { [key: string]: string } = {};
-// in a "real app", this would be a database ^
 
 let cookieOptions: CookieOptions = {
   httpOnly: true,
@@ -63,6 +62,7 @@ interface Success {
 interface LoginSuccess {
     success: string;
     token: string;
+    user_id: number;
 }
 
 interface Error {
@@ -336,8 +336,10 @@ app.post("/api/login", async (req, res: LoginResponse) => {
     try {
         if (await argon2.verify(result.password, password)) {
           const token = makeToken();
+          const user_id = result.id;
+
           tokenStorage[username] = token;
-          return res.cookie("token", token, cookieOptions).json({ success: "Logged in", token});
+          return res.cookie("token", token, cookieOptions).json({ success: "Logged in", token, user_id });
         }
     
         else {
@@ -347,6 +349,13 @@ app.post("/api/login", async (req, res: LoginResponse) => {
         return res.status(500).json({ error: "Internal Server error" });
       }
 });
+
+app.post("/api/logout", (req, res) => {
+    res.clearCookie("token", { path: "/" });
+    res.clearCookie("user_id", { path: "/" });
+  
+    return res.json({ success: "Successfully logged out" });
+  });
 
 // run server
 let port = 3000;

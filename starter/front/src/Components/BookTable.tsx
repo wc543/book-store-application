@@ -7,12 +7,23 @@ import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import SaveIcon from "@mui/icons-material/Save";
 import CancelIcon from "@mui/icons-material/Cancel";
+import { useCookies } from "react-cookie";
 
 function BookTable() {
   const [messages, setMessages] = useState<string[]>([]);
   const [books, setBooks] = useState<Books[]>([]);
   const [bookFilter, setBookFilter] = useState<string>("");
   const [editingBook, setEditingBook] = useState<Books | null>(null);
+  const [cookies] = useCookies(["token", "user_id"]);
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (cookies.token) {
+      setIsLoggedIn(true);
+    } else {
+      setIsLoggedIn(false);
+    }
+  }, [cookies.token]);
 
   useEffect(() => {
     fetchBooks();
@@ -29,12 +40,16 @@ function BookTable() {
     }
   };
 
-  const handleDelete = async (id: number) => {
-    try {
-      await axios.delete(`/api/books/${id}`);
-      setBooks((prevBooks) => prevBooks.filter((book) => book.id !== id));
-    } catch (error) {
-      setMessages(getAxiosErrorMessages(error));
+  const handleDelete = async (id: number, author_id: number) => {
+    if (isLoggedIn && cookies.user_id === author_id) {
+      try {
+        await axios.delete(`/api/books/${id}`);
+        setBooks((prevBooks) => prevBooks.filter((book) => book.id !== id));
+      } catch (error) {
+        setMessages(getAxiosErrorMessages(error));
+      }
+    } else {
+      setMessages(["You can only delete your own books."]);
     }
   };
 
@@ -144,12 +159,19 @@ function BookTable() {
                   <TableCell>{book.pub_year}</TableCell>
                   <TableCell>{book.genre}</TableCell>
                   <TableCell>
-                    <IconButton color="primary" onClick={() => handleEditClick(book)}>
-                      <EditIcon />
-                    </IconButton>
-                    <IconButton color="error" onClick={() => handleDelete(book.id)}>
-                      <DeleteIcon />
-                    </IconButton>
+                    {isLoggedIn && cookies.user_id === book.author_id && (
+                      <>
+                        <IconButton color="primary" onClick={() => handleEditClick(book)}>
+                          <EditIcon />
+                        </IconButton>
+                        <IconButton
+                          color="error"
+                          onClick={() => handleDelete(book.id, book.author_id)}
+                        >
+                          <DeleteIcon />
+                        </IconButton>
+                      </>
+                    )}
                   </TableCell>
                 </TableRow>
               )

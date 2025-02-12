@@ -10,7 +10,9 @@ CREATE TABLE books (
 CREATE TABLE authors (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT,
-    bio TEXT
+    bio TEXT,
+    user_id INTEGER,
+    FOREIGN KEY(user_id) REFERENCES users(id)
 );
 
 CREATE TABLE users (
