@@ -2,7 +2,11 @@ import express from "express";
 import sqlite3 from "sqlite3";
 import { open } from "sqlite";
 import * as url from "url";
+import * as argon2 from "argon2";
+import cookieParser from "cookie-parser";
+import crypto from "crypto";
 let app = express();
+app.use(cookieParser());
 app.use(express.json());
 // create database "connection"
 // use absolute path to avoid this issue
@@ -14,6 +18,17 @@ let db = await open({
     driver: sqlite3.Database,
 });
 await db.get("PRAGMA foreign_keys = ON");
+argon2.hash("password").then(h => { console.log(h); });
+let tokenStorage = {};
+// in a "real app", this would be a database ^
+let cookieOptions = {
+    httpOnly: true,
+    secure: true,
+    sameSite: "strict",
+};
+function makeToken() {
+    return crypto.randomBytes(32).toString("hex");
+}
 app.post("/api/authors", async (req, res) => {
     const { name, bio } = req.body;
     if (!name || !bio) {
@@ -154,6 +169,52 @@ app.put("/api/books/:id", async (req, res) => {
     }
     catch (error) {
         return res.status(500).json({ error: "Failed to update book information" });
+    }
+});
+app.post("/api/register", async (req, res) => {
+    const { username, password } = req.body;
+    if (!username || !password) {
+        return res.status(400).json({ error: "Please enter username and password" });
+    }
+    else if (password.length < 6) {
+        return res.status(400).json({ error: "Password must be at least 6 characters long" });
+    }
+    try {
+        const user = await db.get("SELECT * FROM users WHERE username = ?", [username]);
+        if (user) {
+            return res.status(400).json({ error: "Username already exists" });
+        }
+        const hashedPassword = await argon2.hash(password);
+        const result = await db.run("INSERT INTO users(username, password) VALUES(?, ?)", [username, hashedPassword]);
+        const userId = result.lastID;
+        const newUser = await db.get("SELECT * FROM users WHERE id = ?", [userId]);
+        return res.json(newUser);
+    }
+    catch (error) {
+        return res.status(500).json({ error: "Failed to register" });
+    }
+});
+app.post("/api/login", async (req, res) => {
+    const { username, password } = req.body;
+    if (!username || !password) {
+        return res.status(400).json({ error: "Please enter username and password" });
+    }
+    const result = await db.get("SELECT * FROM users WHERE username = ?", [username]);
+    if (!result) {
+        return res.status(400).json({ error: "Username does not exist" });
+    }
+    try {
+        if (await argon2.verify(result.password, password)) {
+            const token = makeToken();
+            tokenStorage[username] = token;
+            return res.cookie("token", token, cookieOptions).json({ success: "Logged in", token });
+        }
+        else {
+            return res.status(400).json({ error: "Password is incorrect" });
+        }
+    }
+    catch (err) {
+        return res.status(500).json({ error: "Internal Server error" });
     }
 });
 // run server
